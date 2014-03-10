@@ -5,6 +5,8 @@ Capistrano::Configuration.instance(:must_exist).load do
   set :hipchat_with_migrations, false
 
   namespace :hipchat do
+    CHEF_ENV = 'CHEF_ENV'
+
     task :set_client do
       set :hipchat_client, HipChat::Client.new(hipchat_token)
     end
@@ -22,10 +24,10 @@ Capistrano::Configuration.instance(:must_exist).load do
         on_rollback do
           send_options.merge!(:color => failed_message_color)
           hipchat_client[hipchat_room_name].
-            send(deploy_user, "#{human} cancelled deployment of #{deployment_name} to #{env}.", send_options)
+            send(deploy_user, "#{human} cancelled deployment of #{deployment_name} to #{ENV[CHEF_ENV]}.", send_options)
         end
 
-        message = "#{human} is deploying #{deployment_name} to #{env}"
+        message = "#{human} is deploying #{deployment_name} to #{ENV[CHEF_ENV]}"
         message << " (with migrations)" if hipchat_with_migrations
         message << "."
 
@@ -35,7 +37,7 @@ Capistrano::Configuration.instance(:must_exist).load do
 
     task :notify_deploy_finished do
       hipchat_client[hipchat_room_name].
-        send(deploy_user, "#{human} finished deploying #{deployment_name} to #{env}.", send_options)
+        send(deploy_user, "#{human} finished deploying #{deployment_name} to #{ENV[CHEF_ENV]}.", send_options)
     end
 
     def send_options
